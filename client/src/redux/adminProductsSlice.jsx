@@ -12,24 +12,39 @@ export const fetchAdminProducts = createAsyncThunk(
   "adminProducts/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getProducts();
-      // response.data = { products: [...], page, total }
-      // Sanitize product image URLs to avoid API endpoints being used as image src
-      const products = (response.data.products || []).map((p) => {
-        try {
-          if (p && p.images && Array.isArray(p.images) && p.images[0] && typeof p.images[0].url === 'string') {
-            const url = p.images[0].url;
-            if (url.includes('/api/products')) {
-              // replace with placeholder to prevent 404 image requests
-              return { ...p, images: [{ url: 'https://via.placeholder.com/60' }, ...p.images.slice(1)] };
-            }
+      let allProducts = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        const response = await getProducts({ page });
+        const data = response.data;
+
+        // تنظيف كل الصور
+        const sanitizedProducts = (data.products || []).map((product) => {
+          if (product.images && Array.isArray(product.images)) {
+            const cleanedImages = product.images.map((img) => {
+              if (
+                img &&
+                typeof img.url === "string" &&
+                img.url.includes("/api/products")
+              ) {
+                return { ...img, url: "https://via.placeholder.com/150" }; // placeholder أكبر
+              }
+              return img;
+            });
+            return { ...product, images: cleanedImages };
           }
-        } catch (e) {
-          // ignore and return original product
-        }
-        return p;
-      });
-      return products; // return sanitized array
+          return product;
+        });
+
+        allProducts = allProducts.concat(sanitizedProducts);
+
+        totalPages = data.pages || 1;
+        page++;
+      } while (page <= totalPages);
+
+      return allProducts;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }

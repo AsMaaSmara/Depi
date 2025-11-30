@@ -7,8 +7,25 @@ export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getProducts();
-      return response.data;
+      let allProducts = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        // جلب الصفحة الحالية باستخدام params
+        const response = await getProducts({ page });
+        const data = response.data;
+
+        // إضافة المنتجات للمصفوفة الكاملة
+        allProducts = allProducts.concat(data.products);
+
+        // تحديث الصفحة وعدد الصفحات الكلي
+        page++;
+        totalPages = data.pages;
+      } while (page <= totalPages);
+
+      console.log("Fetched all products:", allProducts);
+      return allProducts;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch products"

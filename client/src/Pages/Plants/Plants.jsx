@@ -54,7 +54,7 @@ export default function Plants() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   // Get products from Redux, fallback to static data if empty
-  const products = useSelector((state) => state.products.items.products);
+  const products = useSelector((state) => state.products.items);
 
   const stableProducts = useMemo(() => products || [], [products]);
   console.log(products);

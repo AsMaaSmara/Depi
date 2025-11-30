@@ -13,7 +13,7 @@ import { Link } from "react-router";
 
 function Store() {
   // Get products from Redux
-  const products = useSelector((state) => state.products.items.products);
+  const products = useSelector((state) => state.products.items);
 
   // Stable array to avoid undefined errors
   const stableProducts = useMemo(() => products || [], [products]);
@@ -96,7 +96,7 @@ function Store() {
           </Button>
 
           <Button className="px-8 py-3 text-base font-medium text-white bg-secondary hover:bg-primary rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5">
-            <Link to="/plants/indoor">View All Outdoor Plants</Link>
+            <Link to="/plants/outdoor">View All Outdoor Plants</Link>
           </Button>
         </div>
       </div>
