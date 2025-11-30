@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser,
 } from "../../redux/adminUsersSlice";
+import { Navigate } from "react-router-dom";
 
 const statusStyles = {
   Active: "bg-lightGreen/20 text-lightGreen",
@@ -16,6 +17,7 @@ const statusStyles = {
 export default function AdminUsers() {
   const dispatch = useDispatch();
   const { users, loading, error } = useSelector((state) => state.adminUsers);
+  const { user } = useSelector((state) => state.auth);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -32,6 +34,10 @@ export default function AdminUsers() {
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
+
+  if (!user || !user.isAdmin) {
+    return <Navigate to="/signin" replace />;
+  }
 
   const openAddModal = () => {
     setEditUser(null);
@@ -264,7 +270,7 @@ export default function AdminUsers() {
                 />
               )}
               {modalError && (
-                <div className="text-red-500 text-sm mb-2">{modalError}</div>
+                <div className="mb-2 text-sm text-red-500">{modalError}</div>
               )}
               <button
                 type="submit"

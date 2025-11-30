@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Search, Filter, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import axiosInstance from "../../lib/axiosInstance";
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [setLoading] = useState(true);
+  const [setError] = useState(null);
+
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -22,8 +26,9 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  if (loading) return <p>Loading orders...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (!user || !user.isAdmin) {
+    return <Navigate to="/signin" replace />;
+  }
 
   return (
     <div className="min-h-screen p-5 bg-transparent">

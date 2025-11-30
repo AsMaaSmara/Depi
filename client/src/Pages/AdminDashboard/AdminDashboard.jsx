@@ -15,6 +15,8 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 
 // ==========================
 // Admin Dashboard Content
@@ -31,6 +33,16 @@ export default function AdminDashboard() {
     ],
     []
   );
+  const { user } = useSelector((state) => state.auth);
+  const loading = useSelector((state) => state.auth.loading);
+
+  // لو لسه البيانات بتحمل، ممكن ترجعي null أو loading spinner
+  if (loading) return null;
+
+  // لو مش موجود أو مش admin، حولي فورًا
+  if (!user || !user.isAdmin) {
+    return <Navigate to="/signin" replace />;
+  }
 
   const monthlySales = [
     { month: "Jan", sales: 40 },
