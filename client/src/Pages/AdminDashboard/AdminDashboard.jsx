@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   ArrowUpRight,
   BarChart as BarChartIcon,
@@ -15,77 +15,128 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import axiosInstance from "../../lib/axiosInstance";
+
+// ----------------------
+// Helpers / UI utilities
+// ----------------------
+function getFirstName(fullName) {
+  if (!fullName) return "";
+  return String(fullName).trim().split(/\s+/)[0] || fullName;
+}
+
+function shortenEmail(email) {
+  if (!email) return "";
+  const s = String(email);
+  if (s.length <= 18) return s;
+  const parts = s.split("@");
+  if (parts.length < 2) return s;
+  const local = parts[0];
+  const domain = parts.slice(1).join("@");
+  // Keep domain visible, truncate local part with ellipsis
+  const maxLocal = Math.max(3, 18 - domain.length - 1); // reserve for @ and domain
+  const visibleLocal =
+    local.length > maxLocal
+      ? local.slice(0, Math.max(3, maxLocal)) + "…"
+      : local;
+  return `${visibleLocal}@${domain}`;
+}
+
+function TrimCell({ text, className = "", maxWidth = "160px" }) {
+  return (
+    <div
+      className={`truncate ${className}`}
+      title={typeof text === "string" ? text : String(text)}
+      style={{ maxWidth }}
+    >
+      {text}
+    </div>
+  );
+}
 
 // ==========================
 // Admin Dashboard Content
 // Only main content, no header/sidebar
 // ==========================
 export default function AdminDashboard() {
-  // Mock data
-  const stats = useMemo(
-    () => [
-      { id: 1, title: "Total Users", value: 124, trend: "+4.2%" },
-      { id: 2, title: "Total Orders", value: 320, trend: "+1.1%" },
-      { id: 3, title: "Total Revenue", value: "$8,420", trend: "+8.6%" },
-      { id: 4, title: "Total Products", value: 84, trend: "-0.4%" },
-    ],
-    []
-  );
-  const { user } = useSelector((state) => state.auth);
-  const loading = useSelector((state) => state.auth.loading);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [monthlySales, setMonthlySales] = useState([]);
+  const [userGrowth, setUserGrowth] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentUsers, setRecentUsers] = useState([]);
 
-  // لو لسه البيانات بتحمل، ممكن ترجعي null أو loading spinner
-  if (loading) return null;
+  useEffect(() => {
+    let mounted = true;
+    const fetchOverview = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await axiosInstance.get("/api/admin/analytics/overview");
+        if (!mounted) return;
+        const data = res.data || {};
+        setTotalUsers(data.totalUsers || 0);
+        setTotalOrders(data.totalOrders || 0);
+        setTotalRevenue(data.totalRevenue || 0);
+        setTotalProducts(data.totalProducts || 0);
+        setMonthlySales(
+          Array.isArray(data.monthlySales) ? data.monthlySales : []
+        );
+        setUserGrowth(
+          Array.isArray(data.monthlyUserGrowth) ? data.monthlyUserGrowth : []
+        );
+        setRecentOrders(
+          Array.isArray(data.latestOrders) ? data.latestOrders : []
+        );
+        setRecentUsers(Array.isArray(data.recentUsers) ? data.recentUsers : []);
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to load analytics"
+        );
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchOverview();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  // لو مش موجود أو مش admin، حولي فورًا
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
+  // Process recent orders: sort by createdAt DESC and assign human friendly incremental numbers starting at 1
+  const processedRecentOrders = React.useMemo(() => {
+    if (!Array.isArray(recentOrders)) return [];
+    const arr = [...recentOrders];
+    arr.sort((a, b) => {
+      const da = a?.createdAt ? new Date(a.createdAt) : 0;
+      const db = b?.createdAt ? new Date(b.createdAt) : 0;
+      return db - da; // desc
+    });
+    return arr.map((o, idx) => ({ ...o, displayOrderNumber: `#${idx + 1}` }));
+  }, [recentOrders]);
 
-  const monthlySales = [
-    { month: "Jan", sales: 40 },
-    { month: "Feb", sales: 300 },
-    { month: "Mar", sales: 50 },
-    { month: "Apr", sales: 40 },
-    { month: "May", sales: 62 },
-    { month: "Jun", sales: 53 },
-    { month: "Jul", sales: 68 },
-    { month: "Aug", sales: 72 },
-    { month: "Sep", sales: 66 },
-    { month: "Oct", sales: 78 },
-    { month: "Nov", sales: 82 },
-    { month: "Dec", sales: 90 },
-  ];
-
-  const userGrowth = [
-    { month: "Jan", users: 120 },
-    { month: "Feb", users: 90 },
-    { month: "Mar", users: 150 },
-    { month: "Apr", users: 130 },
-    { month: "May", users: 190 },
-    { month: "Jun", users: 170 },
-    { month: "Jul", users: 210 },
-    { month: "Aug", users: 230 },
-    { month: "Sep", users: 200 },
-    { month: "Oct", users: 240 },
-    { month: "Nov", users: 260 },
-    { month: "Dec", users: 300 },
-  ];
-
-  const recentOrders = [
-    { id: "#1001", customer: "AsMa", total: "$120.00", status: "Delivered" },
-    { id: "#1002", customer: "AsMaa", total: "$89.99", status: "Shipped" },
-    { id: "#1003", customer: "Ahmed", total: "$45.50", status: "Processing" },
-    { id: "#1004", customer: "Dave", total: "$230.00", status: "Cancelled" },
-  ];
-
-  const recentUsers = [
-    { id: 1, name: "Emily", email: "emily@example.com", role: "Customer" },
-    { id: 2, name: "Frank", email: "frank@example.com", role: "Seller" },
-    { id: 3, name: "Gina", email: "gina@example.com", role: "Customer" },
-  ];
+  const processedRecentUsers = React.useMemo(() => {
+    if (!Array.isArray(recentUsers)) return [];
+    const arr = [...recentUsers];
+    arr.sort((a, b) => {
+      const da = a?.createdAt ? new Date(a.createdAt) : 0;
+      const db = b?.createdAt ? new Date(b.createdAt) : 0;
+      return db - da;
+    });
+    return arr.map((u) => ({
+      ...u,
+      firstName: getFirstName(
+        u.name || u.fullName || (u.user && u.user.name) || ""
+      ),
+      shortEmail: shortenEmail(u.email),
+    }));
+  }, [recentUsers]);
 
   return (
     <div className="space-y-6">
@@ -99,14 +150,13 @@ export default function AdminDashboard() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard
-            key={s.id}
-            title={s.title}
-            value={s.value}
-            trend={s.trend}
-          />
-        ))}
+        <StatCard title="Total Users" value={totalUsers} />
+        <StatCard title="Total Orders" value={totalOrders} />
+        <StatCard
+          title="Total Revenue"
+          value={`$${Number(totalRevenue || 0).toFixed(2)}`}
+        />
+        <StatCard title="Total Products" value={totalProducts} />
       </div>
 
       {/* Charts */}
@@ -167,29 +217,69 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <Card>
             <h3 className="mb-3 text-lg font-medium">Recent Orders</h3>
-            <Table columns={["Order", "Customer", "Total", "Status"]}>
-              {recentOrders.map((o) => (
-                <tr key={o.id}>
-                  <td>{o.id}</td>
-                  <td>{o.customer}</td>
-                  <td>{o.total}</td>
-                  <td>{o.status}</td>
-                </tr>
-              ))}
-            </Table>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : (
+              <Table columns={["Order", "Customer", "Total", "Status"]}>
+                {processedRecentOrders.map((o) => (
+                  <tr
+                    key={String(o._id || o.id || o.displayOrderNumber)}
+                    className="transition hover:bg-lime-100/40"
+                  >
+                    <td className="px-4 py-2 font-medium">
+                      {o.displayOrderNumber}
+                    </td>
+                    <td className="px-4 py-2">
+                      <TrimCell
+                        text={o.user?.name || o.customer || "-"}
+                        maxWidth="220px"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      {o.totalPrice != null
+                        ? `$${Number(o.totalPrice).toFixed(2)}`
+                        : o.total || "-"}
+                    </td>
+                    <td className="px-4 py-2">{o.status || "-"}</td>
+                  </tr>
+                ))}
+              </Table>
+            )}
           </Card>
 
           <Card>
             <h3 className="mb-3 text-lg font-medium">Recent Users</h3>
-            <Table columns={["Name", "Email", "Role"]}>
-              {recentUsers.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.name}</td>
-                  <td>{u.email}</td>
-                  <td>{u.role}</td>
-                </tr>
-              ))}
-            </Table>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : (
+              <Table columns={["Name", "Email", "Joined"]}>
+                {processedRecentUsers.map((u) => (
+                  <tr
+                    key={String(u._id || u.id)}
+                    className="transition hover:bg-lime-100/40"
+                  >
+                    <td className="px-4 py-2 font-medium">
+                      <TrimCell text={u.firstName || "-"} maxWidth="140px" />
+                    </td>
+                    <td className="px-4 py-2">
+                      <TrimCell
+                        text={u.shortEmail || u.email || "-"}
+                        maxWidth="200px"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      {u.createdAt
+                        ? new Date(u.createdAt).toLocaleDateString()
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+            )}
           </Card>
         </div>
       </div>

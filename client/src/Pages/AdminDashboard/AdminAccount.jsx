@@ -1,31 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, Mail, Lock } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import axiosInstance from "../../lib/axiosInstance";
 import { logout } from "../../redux/authSlice";
-import { Navigate } from "react-router-dom";
 
 export default function AdminAccount() {
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-
-  const [admin, setAdmin] = useState({ name: "", email: "" });
+  const [admin, setAdmin] = useState({ name: user.name, email: user.email });
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
   });
 
-  // تحديث admin state بعد ما الـ user يتحمل
-  useEffect(() => {
-    if (user) {
-      setAdmin({ name: user.name || "", email: user.email || "" });
-    }
-  }, [user]);
-
-  // لو مفيش user أو مش admin، اعمل redirect للـ login
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
+  console.log("[DEBUG] Token used for API requests:", token);
 
   const handleChange = (e) => {
     setAdmin({ ...admin, [e.target.name]: e.target.value });

@@ -3,8 +3,8 @@ import {
   ShoppingCart,
   Box,
   Users,
+  Mail,
   BarChart as BarChartIcon,
-  Settings,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
@@ -35,6 +35,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
           <NavItem to="/admin" icon={<Home />} label="Dashboard" />
           <NavItem to="/admin/orders" icon={<ShoppingCart />} label="Orders" />
           <NavItem to="/admin/products" icon={<Box />} label="Products" />
+          <NavItem to="/admin/messages" icon={<Mail />} label="Messages" />
           <NavItem to="/admin/users" icon={<Users />} label="Users" />
           <NavItem to="/admin/adminaccount" icon={<User />} label="Account" />
         </nav>
@@ -62,6 +63,7 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
           <NavItem to="/admin/orders" icon={<ShoppingCart />} label="Orders" />
           <NavItem to="/admin/products" icon={<Box />} label="Products" />
           <NavItem to="/admin/users" icon={<Users />} label="Users" />
+          <NavItem to="/admin/messages" icon={<Users />} label="Messages" />
           <NavItem to="/admin/adminaccount" icon={<User />} label="Account" />
         </nav>
       </motion.aside>

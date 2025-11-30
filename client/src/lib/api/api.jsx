@@ -77,6 +77,12 @@ export const updateCartItem = (productId, quantity) =>
   api.put(`/cart/item/${productId}`, { qty: quantity });
 export const clearCart = () => api.delete("/cart");
 
+// Contact Messages
+export const createContactMessage = (data) => api.post("/contact", data);
+export const getAllContactMessages = () => api.get("/admin/contact");
+export const markContactMessageRead = (id) =>
+  api.patch(`/admin/contact/${id}/read`);
+
 // Wishlist
 export const getWishlist = () => api.get("/wishlist");
 export const addToWishlist = (productId) =>

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderById } from '../../lib/api/api';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getOrderById } from "../../lib/api/api";
+import ShippingAddress from "../../Components/Common/ShippingAddress";
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -12,7 +13,7 @@ export default function OrderDetails() {
   useEffect(() => {
     // Only call API if id is a valid 24-char hex string (MongoDB ObjectId)
     if (!id || !/^([a-fA-F0-9]{24})$/.test(id)) {
-      setError('Order ID is missing or invalid.');
+      setError("Order ID is missing or invalid.");
       setLoading(false);
       return;
     }
@@ -24,7 +25,7 @@ export default function OrderDetails() {
         if (!mounted) return;
         setOrder(res.data?.data);
       } catch (err) {
-        setError(err.response?.data || err.message || 'Failed to load order');
+        setError(err.response?.data || err.message || "Failed to load order");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -41,11 +42,13 @@ export default function OrderDetails() {
       <div className="p-8">
         <h2 className="mb-4 text-xl font-bold">Order not found</h2>
         <p className="mb-4 text-sm text-red-600">
-          {typeof error === 'object' && error.message ? error.message : String(error)}
+          {typeof error === "object" && error.message
+            ? error.message
+            : String(error)}
         </p>
         <button
-          onClick={() => navigate('/')}
-          className="px-4 py-2 rounded bg-primary text-white"
+          onClick={() => navigate("/")}
+          className="px-4 py-2 text-white rounded bg-primary"
         >
           Back to Home
         </button>
@@ -56,10 +59,12 @@ export default function OrderDetails() {
     return (
       <div className="p-8">
         <h2 className="mb-4 text-xl font-bold">Order not found</h2>
-        <p className="mb-4 text-sm text-red-600">Order data is missing or invalid.</p>
+        <p className="mb-4 text-sm text-red-600">
+          Order data is missing or invalid.
+        </p>
         <button
-          onClick={() => navigate('/')}
-          className="px-4 py-2 rounded bg-primary text-white"
+          onClick={() => navigate("/")}
+          className="px-4 py-2 text-white rounded bg-primary"
         >
           Back to Home
         </button>
@@ -70,16 +75,27 @@ export default function OrderDetails() {
   return (
     <div className="p-8">
       <h1 className="mb-4 text-2xl font-bold">Order #{order._id}</h1>
-      <p className="mb-2">Status: {order.status || (order.isPaid ? 'Paid' : 'Pending')}</p>
-      <p className="mb-2">Total: ${order.totalPrice?.toFixed?.(2) ?? order.totalPrice}</p>
+      <p className="mb-2">
+        Status: {order.status || (order.isPaid ? "Paid" : "Pending")}
+      </p>
+      <p className="mb-2">
+        Total: ${order.totalPrice?.toFixed?.(2) ?? order.totalPrice}
+      </p>
 
       <h3 className="mt-6 mb-2 text-lg font-semibold">Items</h3>
       <ul className="space-y-3">
         {order.orderItems?.map((it) => (
           <li key={String(it.product)} className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+            <div className="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded">
               {it.image ? (
-                <img src={it.image} alt={it.name} className="w-full h-full object-cover" onError={() => console.warn(`Failed to load image: ${it.image}`)} />
+                <img
+                  src={it.image}
+                  alt={it.name}
+                  className="object-cover w-full h-full"
+                  onError={() =>
+                    console.warn(`Failed to load image: ${it.image}`)
+                  }
+                />
               ) : (
                 <div className="text-xs text-gray-400">No image</div>
               )}
@@ -88,13 +104,15 @@ export default function OrderDetails() {
               <div className="font-medium">{it.name}</div>
               <div className="text-sm text-gray-600">Qty: {it.qty}</div>
             </div>
-            <div className="ml-auto font-semibold">${(it.price * it.qty).toFixed(2)}</div>
+            <div className="ml-auto font-semibold">
+              ${(it.price * it.qty).toFixed(2)}
+            </div>
           </li>
         ))}
       </ul>
 
       <h3 className="mt-6 mb-2 text-lg font-semibold">Shipping Address</h3>
-      <pre className="p-3 bg-gray-50 rounded">{JSON.stringify(order.shippingAddress, null, 2)}</pre>
+      <ShippingAddress address={order.shippingAddress} title={null} />
     </div>
   );
 }

@@ -21,6 +21,9 @@ const AdminOrders = lazy(() => import("../Pages/AdminDashboard/AdminOrders"));
 const AdminProducts = lazy(() =>
   import("../Pages/AdminDashboard/AdminProducts")
 );
+const AdminMessages = lazy(() =>
+  import("../Pages/AdminDashboard/AdminMessages")
+);
 const AdminUsers = lazy(() => import("../Pages/AdminDashboard/AdminUsers"));
 const AdminAccount = lazy(() => import("../Pages/AdminDashboard/AdminAccount"));
 
@@ -140,6 +143,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <AdminProducts />
+          </Suspense>
+        ),
+      },
+      {
+        path: "messages",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AdminMessages />
           </Suspense>
         ),
       },

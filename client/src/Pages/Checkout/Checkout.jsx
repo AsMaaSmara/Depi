@@ -136,7 +136,7 @@ const PaymentOption = (
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { cartItems = [] } = useCart() || {};
+  const { cartItems = [], clearCart } = useCart() || {};
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderNumber] = useState(
     () => `ORD-${Date.now().toString().slice(-6)}`
@@ -218,13 +218,40 @@ export default function Checkout() {
         postalCode: formData.postalCode,
         country: formData.country,
       },
-      paymentMethod: formData.paymentMethod,
+      // Map UI payment values to server enum values
+      paymentMethod:
+        formData.paymentMethod === "credit"
+          ? "credit_card"
+          : formData.paymentMethod === "paypal"
+          ? "paypal"
+          : formData.paymentMethod,
+      // Provide required price breakdown fields expected by server/schema
+      itemsPrice: orderSummary.subtotal,
+      shippingPrice: orderSummary.shipping,
+      taxPrice: orderSummary.tax,
       totalPrice: orderSummary.total,
     };
+
+    // Debug: log payload being sent to the server
+    try {
+      console.debug(
+        "Placing order with payload:",
+        JSON.parse(JSON.stringify(orderData))
+      );
+    } catch (e) {
+      console.debug("Placing order (non-serializable payload)");
+    }
 
     dispatch(createOrderThunk(orderData))
       .unwrap()
       .then((res) => {
+        // Clear only client-side cart state; server already clears DB cart.
+        try {
+          if (typeof clearCart === "function") clearCart({ syncServer: false });
+        } catch (e) {
+          console.error("Failed to clear client cart after order:", e);
+        }
+
         setShowSuccess(true); // افتح المودال الجميل
         console.log("ORDER CREATED RAW RESPONSE:", res);
         console.log("ORDER CREATED DATA:", res.data);
@@ -243,8 +270,17 @@ export default function Checkout() {
         }, 1500);
       })
       .catch((err) => {
-        console.error("Order failed:", err);
-        alert("Failed to create order.");
+        // unwrap() will surface the rejected payload; log as much detail as possible
+        try {
+          console.error("Order failed (rejection):", err);
+          // If the error contains response-like data, log it
+          if (err && typeof err === "object") {
+            console.error("Order failed details:", JSON.stringify(err));
+          }
+        } catch (e) {
+          console.error("Order failed (could not stringify):", err);
+        }
+        alert("Failed to create order. Check console for details.");
       });
   };
 
@@ -494,35 +530,40 @@ export default function Checkout() {
                 <CardContent className="space-y-4">
                   {cartItems.map((item) => {
                     // Extract image from various possible cart item properties
-                    const imageUrl = 
-                      item.img || 
-                      item.image || 
-                      (item.images && item.images.length > 0 ? item.images[0].url : null) ||
+                    const imageUrl =
+                      item.img ||
+                      item.image ||
+                      (item.images && item.images.length > 0
+                        ? item.images[0].url
+                        : null) ||
                       (item.images && item.images[0] ? item.images[0] : null);
-                    
+
                     return (
-                    <div key={item.id || item._id} className="flex items-center gap-3">
-                      <div className="relative w-16 h-16 overflow-hidden rounded-lg bg-gray-50 shrink-0">
-                        {imageUrl && (
-                        <img
-                          src={imageUrl}
-                          alt={item.name}
-                          className="object-cover w-full h-full"
-                        />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate text-secondary">
-                          {item.name}
+                      <div
+                        key={item.id || item._id}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="relative w-16 h-16 overflow-hidden rounded-lg bg-gray-50 shrink-0">
+                          {imageUrl && (
+                            <img
+                              src={imageUrl}
+                              alt={item.name}
+                              className="object-cover w-full h-full"
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate text-secondary">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-secondary/60">
+                            Qty: {item.quantity}
+                          </p>
+                        </div>
+                        <p className="text-sm font-bold text-primary">
+                          ${(item.price * item.quantity).toFixed(2)}
                         </p>
-                        <p className="text-xs text-secondary/60">
-                          Qty: {item.quantity}
-                        </p>
                       </div>
-                      <p className="text-sm font-bold text-primary">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
                     );
                   })}
                   <div className="pt-2 space-y-2">
