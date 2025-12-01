@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Edit2, Trash2, Plus, X } from "lucide-react";
+import { Edit2, Trash2, User, Plus, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUsers,
@@ -7,7 +7,6 @@ import {
   updateUser,
   deleteUser,
 } from "../../redux/adminUsersSlice";
-import { Navigate } from "react-router-dom";
 
 const statusStyles = {
   Active: "bg-lightGreen/20 text-lightGreen",
@@ -17,7 +16,6 @@ const statusStyles = {
 export default function AdminUsers() {
   const dispatch = useDispatch();
   const { users, loading, error } = useSelector((state) => state.adminUsers);
-  const { user } = useSelector((state) => state.auth);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -34,10 +32,6 @@ export default function AdminUsers() {
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
-
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
 
   const openAddModal = () => {
     setEditUser(null);
@@ -127,6 +121,7 @@ export default function AdminUsers() {
               <th className="p-4">Name</th>
               <th className="p-4">Email</th>
               <th className="p-4">Role</th>
+              <th className="p-4">Status</th>
               <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
@@ -141,6 +136,15 @@ export default function AdminUsers() {
                 <td className="p-4 font-semibold text-primary">{user.name}</td>
                 <td className="p-4 text-primary">{user.email}</td>
                 <td className="p-4 font-medium text-primary">{user.role}</td>
+                <td className="p-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      statusStyles[user.status]
+                    }`}
+                  >
+                    {user.status}
+                  </span>
+                </td>
                 <td className="flex justify-center gap-2 p-4 text-center">
                   <button
                     onClick={() => openEditModal(user)}
@@ -171,6 +175,13 @@ export default function AdminUsers() {
               <div className="font-semibold text-primary">{user.name}</div>
               <div className="text-primary">{user.email}</div>
               <div className="font-medium text-primary">{user.role}</div>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  statusStyles[user.status]
+                }`}
+              >
+                {user.status}
+              </span>
             </div>
             <div className="flex gap-2 mt-2 sm:mt-0">
               <button
@@ -231,6 +242,16 @@ export default function AdminUsers() {
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
               </select>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                required
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
               {!editUser && (
                 <input
                   name="password"
@@ -243,7 +264,7 @@ export default function AdminUsers() {
                 />
               )}
               {modalError && (
-                <div className="mb-2 text-sm text-red-500">{modalError}</div>
+                <div className="text-red-500 text-sm mb-2">{modalError}</div>
               )}
               <button
                 type="submit"

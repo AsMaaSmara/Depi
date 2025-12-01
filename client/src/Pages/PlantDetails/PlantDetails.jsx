@@ -20,6 +20,7 @@ import { useCart } from "../../Components/Common/Cart/useCart";
 import { getProductById } from "@/lib/api/api";
 import { useDispatch } from "react-redux";
 import { addToCartThunk } from "../../redux/cartSlice";
+import { API_ROOT } from "../../lib/api/api";
 
 // We'll fetch product data from the API instead of using a local mock database
 
@@ -116,10 +117,11 @@ export default function PlantDetails() {
         const status = err?.response?.status;
         if (status === 404) {
           // Redirect to shop when the product doesn't exist (stale link)
-          navigate('/indoor', { replace: true });
+          navigate("/indoor", { replace: true });
           return;
         }
-        const msg = err?.response?.data?.message || err.message || "Product not found";
+        const msg =
+          err?.response?.data?.message || err.message || "Product not found";
         if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
@@ -129,7 +131,7 @@ export default function PlantDetails() {
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, navigate]);
 
   if (loading) {
     return (
@@ -201,11 +203,19 @@ export default function PlantDetails() {
               <div className="overflow-hidden aspect-square">
                 <img
                   src={(() => {
-                    const url = product.images && product.images[0] ? product.images[0].url : product.image || "/placeholder.jpg";
-                    if (!url || typeof url !== 'string') return '/placeholder.jpg';
-                    if (url.includes('/api/products')) return '/placeholder.jpg';
-                    if (url.startsWith('data:') || /^(https?:)?\/\//i.test(url)) return url;
-                    return `${API_ROOT.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`;
+                    const url =
+                      product.images && product.images[0]
+                        ? product.images[0].url
+                        : product.image || "/placeholder.jpg";
+                    if (!url || typeof url !== "string")
+                      return "/placeholder.jpg";
+                    if (url.includes("/api/products"))
+                      return "/placeholder.jpg";
+                    if (url.startsWith("data:") || /^(https?:)?\/\//i.test(url))
+                      return url;
+                    return `${API_ROOT.replace(/\/$/, "")}${
+                      url.startsWith("/") ? url : "/" + url
+                    }`;
                   })()}
                   alt={product.name}
                   className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"

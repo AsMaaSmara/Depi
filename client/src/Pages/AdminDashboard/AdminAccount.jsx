@@ -85,14 +85,14 @@ export default function AdminAccount() {
 
         <button
           type="submit"
-          className="px-4 py-2 text-white rounded-lg bg-primary hover:bg-primary-dark"
+          className="px-4 py-2 text-white bg-primary rounded-lg hover:bg-primary-dark"
         >
           Save Changes
         </button>
       </form>
 
       {/* Change Password Form */}
-      <form className="mt-8 space-y-4" onSubmit={handlePasswordSave}>
+      <form className="space-y-4 mt-8" onSubmit={handlePasswordSave}>
         <h3 className="text-lg font-semibold">Change Password</h3>
         <div className="flex flex-col">
           <label className="flex items-center gap-1 mb-1 text-sm text-primary">
@@ -124,7 +124,7 @@ export default function AdminAccount() {
         </div>
         <button
           type="submit"
-          className="px-4 py-2 text-white rounded-lg bg-primary hover:bg-primary-dark"
+          className="px-4 py-2 text-white bg-primary rounded-lg hover:bg-primary-dark"
         >
           Change Password
         </button>

@@ -115,6 +115,14 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: "/login",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <AuthPage defaultMode={true} />
+      </Suspense>
+    ),
+  },
+  {
     path: "/admin",
     element: (
       <Suspense fallback={<Loading />}>

@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import axiosInstance from "../../lib/axiosInstance";
-import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+
+const statusStyles = {
+  Delivered: "bg-lightGreen/20 text-lightGreen",
+  Pending: "bg-primary/20 text-primary",
+  Cancelled: "bg-primary/20 text-primary",
+};
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
-  const [setLoading] = useState(true);
-  const [setError] = useState(null);
-
-  const { user } = useSelector((state) => state.auth);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -26,9 +28,8 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
+  if (loading) return <p>Loading orders...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="min-h-screen p-5 bg-transparent">
@@ -44,8 +45,8 @@ export default function AdminOrders() {
               <th className="p-4">Customer Name</th>
               <th className="p-4">Date</th>
               <th className="p-4">Total</th>
-              {/* <th className="p-4">Status</th>
-              <th className="p-4 text-center">Actions</th> */}
+              <th className="p-4">Status</th>
+              <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -70,6 +71,26 @@ export default function AdminOrders() {
                 <td className="p-4 font-semibold text-primary">
                   $
                   {order.totalPrice != null ? order.totalPrice.toFixed(2) : "-"}
+                </td>
+                <td className="p-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      order.status && statusStyles[order.status]
+                        ? statusStyles[order.status]
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {order.status &&
+                    typeof order.status === "string" &&
+                    order.status.trim() !== ""
+                      ? order.status
+                      : "-"}
+                  </span>
+                </td>
+                <td className="p-4 text-center">
+                  <button className="inline-flex p-2 transition rounded-lg bg-primary/10 hover:bg-primary/20">
+                    <Eye size={18} className="text-primary" />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -105,6 +126,19 @@ export default function AdminOrders() {
               Total: $
               {order.totalPrice != null ? order.totalPrice.toFixed(2) : "-"}
             </div>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                order.status && statusStyles[order.status]
+                  ? statusStyles[order.status]
+                  : "bg-gray-200 text-gray-500"
+              }`}
+            >
+              {order.status &&
+              typeof order.status === "string" &&
+              order.status.trim() !== ""
+                ? order.status
+                : "-"}
+            </span>
           </div>
         ))}
       </div>

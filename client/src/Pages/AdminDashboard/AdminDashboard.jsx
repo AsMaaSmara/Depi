@@ -35,10 +35,7 @@ function shortenEmail(email) {
   const domain = parts.slice(1).join("@");
   // Keep domain visible, truncate local part with ellipsis
   const maxLocal = Math.max(3, 18 - domain.length - 1); // reserve for @ and domain
-  const visibleLocal =
-    local.length > maxLocal
-      ? local.slice(0, Math.max(3, maxLocal)) + "…"
-      : local;
+  const visibleLocal = local.length > maxLocal ? local.slice(0, Math.max(3, maxLocal)) + "…" : local;
   return `${visibleLocal}@${domain}`;
 }
 
@@ -83,22 +80,12 @@ export default function AdminDashboard() {
         setTotalOrders(data.totalOrders || 0);
         setTotalRevenue(data.totalRevenue || 0);
         setTotalProducts(data.totalProducts || 0);
-        setMonthlySales(
-          Array.isArray(data.monthlySales) ? data.monthlySales : []
-        );
-        setUserGrowth(
-          Array.isArray(data.monthlyUserGrowth) ? data.monthlyUserGrowth : []
-        );
-        setRecentOrders(
-          Array.isArray(data.latestOrders) ? data.latestOrders : []
-        );
+        setMonthlySales(Array.isArray(data.monthlySales) ? data.monthlySales : []);
+        setUserGrowth(Array.isArray(data.monthlyUserGrowth) ? data.monthlyUserGrowth : []);
+        setRecentOrders(Array.isArray(data.latestOrders) ? data.latestOrders : []);
         setRecentUsers(Array.isArray(data.recentUsers) ? data.recentUsers : []);
       } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Failed to load analytics"
-        );
+        setError(err.response?.data?.message || err.message || "Failed to load analytics");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -131,9 +118,7 @@ export default function AdminDashboard() {
     });
     return arr.map((u) => ({
       ...u,
-      firstName: getFirstName(
-        u.name || u.fullName || (u.user && u.user.name) || ""
-      ),
+      firstName: getFirstName(u.name || u.fullName || (u.user && u.user.name) || ""),
       shortEmail: shortenEmail(u.email),
     }));
   }, [recentUsers]);
@@ -152,10 +137,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Users" value={totalUsers} />
         <StatCard title="Total Orders" value={totalOrders} />
-        <StatCard
-          title="Total Revenue"
-          value={`$${Number(totalRevenue || 0).toFixed(2)}`}
-        />
+        <StatCard title="Total Revenue" value={`$${Number(totalRevenue || 0).toFixed(2)}`} />
         <StatCard title="Total Products" value={totalProducts} />
       </div>
 
@@ -226,23 +208,14 @@ export default function AdminDashboard() {
                 {processedRecentOrders.map((o) => (
                   <tr
                     key={String(o._id || o.id || o.displayOrderNumber)}
-                    className="transition hover:bg-lime-100/40"
+                    className="hover:bg-lime-100/40 transition"
                   >
-                    <td className="px-4 py-2 font-medium">
-                      {o.displayOrderNumber}
-                    </td>
+                    <td className="px-4 py-2 font-medium">{o.displayOrderNumber}</td>
                     <td className="px-4 py-2">
-                      <TrimCell
-                        text={o.user?.name || o.customer || "-"}
-                        maxWidth="220px"
-                      />
+                      <TrimCell text={o.user?.name || o.customer || '-'} maxWidth="220px" />
                     </td>
-                    <td className="px-4 py-2">
-                      {o.totalPrice != null
-                        ? `$${Number(o.totalPrice).toFixed(2)}`
-                        : o.total || "-"}
-                    </td>
-                    <td className="px-4 py-2">{o.status || "-"}</td>
+                    <td className="px-4 py-2">{o.totalPrice != null ? `$${Number(o.totalPrice).toFixed(2)}` : o.total || '-'}</td>
+                    <td className="px-4 py-2">{o.status || '-'}</td>
                   </tr>
                 ))}
               </Table>
@@ -258,24 +231,14 @@ export default function AdminDashboard() {
             ) : (
               <Table columns={["Name", "Email", "Joined"]}>
                 {processedRecentUsers.map((u) => (
-                  <tr
-                    key={String(u._id || u.id)}
-                    className="transition hover:bg-lime-100/40"
-                  >
+                  <tr key={String(u._id || u.id)} className="hover:bg-lime-100/40 transition">
                     <td className="px-4 py-2 font-medium">
-                      <TrimCell text={u.firstName || "-"} maxWidth="140px" />
+                      <TrimCell text={u.firstName || '-'} maxWidth="140px" />
                     </td>
                     <td className="px-4 py-2">
-                      <TrimCell
-                        text={u.shortEmail || u.email || "-"}
-                        maxWidth="200px"
-                      />
+                      <TrimCell text={u.shortEmail || u.email || '-'} maxWidth="200px" />
                     </td>
-                    <td className="px-4 py-2">
-                      {u.createdAt
-                        ? new Date(u.createdAt).toLocaleDateString()
-                        : "-"}
-                    </td>
+                    <td className="px-4 py-2">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
                   </tr>
                 ))}
               </Table>

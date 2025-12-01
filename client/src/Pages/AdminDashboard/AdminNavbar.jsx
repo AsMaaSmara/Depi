@@ -4,7 +4,6 @@ import { logout } from "../../redux/authSlice";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
 
 export default function AdminNavbar({ sidebarOpen, setSidebarOpen }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,10 +11,6 @@ export default function AdminNavbar({ sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   console.log(user);
-
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
 
   const handleLogout = () => {
     dispatch(logout());
@@ -97,7 +92,7 @@ export default function AdminNavbar({ sidebarOpen, setSidebarOpen }) {
               <div className="flex items-center justify-center rounded-full w-9 h-9 bg-primary/30">
                 <User />
               </div>
-              <div className="text-sm">{user?.name || "Guest"}</div>
+              <div className="text-sm">{user?.name ?? "Admin"}</div>
             </div>
           </div>
         </div>

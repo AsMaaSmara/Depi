@@ -2,27 +2,25 @@
 
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { updateUserProfile } from "../../lib/api/api";
 import { loginSuccess } from "../../redux/authSlice";
 import ProfileCard from "./ProfileCard/ProfileCard";
 import AccountTabs from "./AccountTabs/AccountTabs";
-import { useNavigate } from "react-router-dom";
 
 const UserAccount = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { user, token } = useSelector((state) => state.auth);
   console.log(user);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/signin");
-    }
-  }, [user, navigate]);
+  const navigate = useNavigate();
 
-  if (!user) {
-    return <p className="p-6 text-center">Loading profile...</p>;
-  }
+  useEffect(() => {
+    // If there's no token (user is logged out) ensure we redirect to sign-in
+    if (!token) {
+      navigate("/signin", { replace: true });
+    }
+  }, [token, navigate]);
 
   // 🔹 تحديث بيانات البروفايل
   const handleUpdateProfile = async (updatedData) => {

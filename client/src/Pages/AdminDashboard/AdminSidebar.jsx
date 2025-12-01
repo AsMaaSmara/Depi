@@ -5,6 +5,7 @@ import {
   Users,
   Mail,
   BarChart as BarChartIcon,
+  Settings,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
@@ -63,7 +64,6 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
           <NavItem to="/admin/orders" icon={<ShoppingCart />} label="Orders" />
           <NavItem to="/admin/products" icon={<Box />} label="Products" />
           <NavItem to="/admin/users" icon={<Users />} label="Users" />
-          <NavItem to="/admin/messages" icon={<Users />} label="Messages" />
           <NavItem to="/admin/adminaccount" icon={<User />} label="Account" />
         </nav>
       </motion.aside>

@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const Order = require('../models/orderModel');
+const Cart = require('../models/cartModel');
 
 const validateId = (id) => String(id).match(/^[a-fA-F0-9]{24}$/);
 
@@ -35,7 +36,21 @@ const createOrder = asyncHandler(async (req, res) => {
     }
   }
   const order = await Order.create(req.body);
+  // Respond immediately to the client
   res.status(201).json({ status: 'success', data: order });
+
+  // Best-effort: clear the user's DB cart after successful order creation.
+  // Fire-and-forget, do not block response or rollback the created order on failure.
+  try {
+    Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { items: [], totalPrice: 0 }
+    ).catch((err) => {
+      console.error('Failed to clear DB cart after createOrder for user', req.user && req.user._id, err);
+    });
+  } catch (err) {
+    console.error('Unexpected error while attempting to clear DB cart after createOrder:', err);
+  }
 });
 
 const updateOrder = asyncHandler(async (req, res) => {
@@ -138,7 +153,21 @@ const addOrderItems = asyncHandler(async (req, res) => {
   });
 
   const createdOrder = await order.save();
+  // Respond immediately to the client
   res.status(201).json({ status: 'success', data: createdOrder });
+
+  // Best-effort: clear the user's DB cart after successful order save.
+  // Non-blocking: do not await or rollback on failure — just log errors.
+  try {
+    Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { items: [], totalPrice: 0 }
+    ).catch((err) => {
+      console.error('Failed to clear DB cart after addOrderItems for user', req.user && req.user._id, err);
+    });
+  } catch (err) {
+    console.error('Unexpected error while attempting to clear DB cart after addOrderItems:', err);
+  }
 });
 
 const getOrderById = asyncHandler(async (req, res) => {

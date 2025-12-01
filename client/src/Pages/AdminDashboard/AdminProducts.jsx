@@ -9,7 +9,6 @@ import {
   deleteAdminProduct,
 } from "../../redux/adminProductsSlice";
 import { API_ROOT } from "../../lib/api/api";
-import { Navigate } from "react-router-dom";
 
 export default function AdminProducts() {
   const dispatch = useDispatch();
@@ -19,8 +18,6 @@ export default function AdminProducts() {
     loading,
     error,
   } = useSelector((state) => state.adminProducts);
-
-  const { user } = useSelector((state) => state.auth);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -44,19 +41,14 @@ export default function AdminProducts() {
     dispatch(fetchAdminProducts());
   }, [dispatch]);
 
-  if (!user || !user.isAdmin) {
-    return <Navigate to="/signin" replace />;
-  }
-
   const getImageSrc = (url) => {
-    if (!url || typeof url !== "string")
-      return "https://via.placeholder.com/60";
+    if (!url || typeof url !== 'string') return 'https://via.placeholder.com/60';
     // Reject any url that references the products API (avoid 404s)
-    if (url.includes("/api/products")) return "https://via.placeholder.com/60";
+    if (url.includes('/api/products')) return 'https://via.placeholder.com/60';
     // data URIs or absolute URLs
-    if (url.startsWith("data:") || /^(https?:)?\/\//i.test(url)) return url;
+    if (url.startsWith('data:') || /^(https?:)?\/\//i.test(url)) return url;
     // If it's a relative path, prefix with API root
-    if (url.startsWith("/")) return `${API_ROOT.replace(/\/$/, "")}${url}`;
+    if (url.startsWith('/')) return `${API_ROOT.replace(/\/$/, '')}${url}`;
     // Otherwise return as-is
     return url;
   };
@@ -102,12 +94,9 @@ export default function AdminProducts() {
     try {
       await dispatch(deleteAdminProduct(id)).unwrap();
     } catch (err) {
-      if (
-        err?.status === 404 ||
-        (err?.message && err.message.includes("Not Found"))
-      ) {
+      if (err?.status === 404 || (err?.message && err.message.includes('Not Found'))) {
         // Remove product from UI if not found
-        alert("Product not found or already deleted.");
+        alert('Product not found or already deleted.');
         // Optionally, update local state
         // setProducts((prev) => prev.filter((p) => p._id !== id));
       } else {
@@ -161,9 +150,9 @@ export default function AdminProducts() {
         description: formData.description,
         careInfo: formData.careInfo,
         // Filter out empty feature strings
-        features: formData.features.filter((f) => f && f.trim()),
+        features: formData.features.filter(f => f && f.trim()),
       };
-
+      
       // Handle images — ensure it's in the correct format for backend
       if (formData.imageUrl) {
         data.images = [{ url: formData.imageUrl }];
